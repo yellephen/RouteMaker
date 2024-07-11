@@ -5,5 +5,5 @@ This is a little proof-of-concept webapp that will take a distance and from a st
 If you want to run it, you'll have to create an appsettings.json in the project directory and add your own google maps API key like as follows.
 
   "ApiKeys": {
-    "GoogleMaps": "<apikey>"
+    "GoogleMaps": "[apikey]"
   }
