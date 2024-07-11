@@ -1,0 +1,349 @@
+﻿@page
+@model IndexModel
+@inject IConfiguration Configuration
+
+@{
+	ViewData["Title"] = "Home page";
+	var apiKey = Configuration["ApiKeys:GoogleMaps"];
+}
+
+<div class="text-center">
+	<h1 class="display-4">Welcome</h1>
+	<p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=@apiKey&callback=initMap&libraries=geometry"></script>
+
+<html>
+<body>
+	<div id="map"></div>
+	<style>
+		#map {
+			height: 400px;
+			width: 100%;
+		}
+	</style>
+	<script>
+
+
+		function getRandomFloat(min, max) {
+			return Math.random() * (max - min) + min;
+		}
+
+		function getRandomInt(min, max) {
+			min = Math.ceil(min);
+			max = Math.floor(max);
+			return Math.floor(Math.random() * (max - min + 1)) + min;
+		}
+
+		function getAPoint(lat, lon, bearing, reqDistance) {
+			console.log(bearing)
+			if (bearing == "North") {
+				latMax = lat + 0.008 / 5000 * reqDistance * 1000
+				latMin = lat + 0.005 / 5000 * reqDistance * 1000
+
+				lonMax = lon + 0.004 / 5000 * reqDistance * 1000
+				lonMin = lon + 0.002 / 5000 * reqDistance * 1000
+			}
+			else if (bearing == "NorthWest") {
+				latMax = lat + 0.005 / 5000 * reqDistance * 1000
+				latMin = lat + 0.004 / 5000 * reqDistance * 1000
+
+				lonMax = lon - 0.004 / 5000 * reqDistance * 1000
+				lonMin = lon - 0.005 / 5000 * reqDistance * 1000
+			}
+			else if (bearing == "NorthEast") {
+				latMax = lat + 0.005 / 5000 * reqDistance * 1000
+				latMin = lat + 0.004 / 5000 * reqDistance * 1000
+
+				lonMax = lon + 0.005 / 5000 * reqDistance * 1000
+				lonMin = lon + 0.004 / 5000 * reqDistance * 1000
+			}
+			else if (bearing == "West") {
+				latMax = lat + 0.006 / 5000 * reqDistance * 1000
+				latMin = lat + 0.005 / 5000 * reqDistance * 1000
+
+				lonMax = lon - 0.003 / 5000 * reqDistance * 1000
+				lonMin = lon - 0.008 / 5000 * reqDistance * 1000
+			}
+			else if (bearing == "East") {
+				latMax = lat + 0.004 / 5000 * reqDistance * 1000
+				latMin = lat + 0.003 / 5000 * reqDistance * 1000
+
+				lonMax = lon + 0.008 / 5000 * reqDistance * 1000
+				lonMin = lon + 0.005 / 5000 * reqDistance * 1000
+			}
+			else if (bearing == "South") {
+				latMax = lat - 0.005 / 5000 * reqDistance * 1000
+				latMin = lat - 0.008 / 5000 * reqDistance * 1000
+
+				lonMax = lon + 0.004 / 5000 * reqDistance * 1000
+				lonMin = lon + 0.003 / 5000 * reqDistance * 1000
+			}
+			else if (bearing == "SouthWest") {
+				latMax = lat - 0.004 / 5000 * reqDistance * 1000
+				latMin = lat - 0.005 / 5000 * reqDistance * 1000
+
+				lonMax = lon - 0.004 / 5000 * reqDistance * 1000
+				lonMin = lon - 0.005 / 5000 * reqDistance * 1000
+			}
+			else if (bearing == "SouthEast") {
+				latMax = lat - 0.004 / 5000 * reqDistance * 1000
+				latMin = lat - 0.005 / 5000 * reqDistance * 1000
+
+				lonMax = lon + 0.005 / 5000 * reqDistance * 1000
+				lonMin = lon + 0.004 / 5000 * reqDistance * 1000
+			}
+
+			lat = Math.random() * (latMax - latMin) + latMin;
+			lon = Math.random() * (lonMax - lonMin) + lonMin;
+			console.log(lat + " " + lon + " " + bearing)
+			return { lat, lon }
+		}
+
+		function randomGeo(lat, lon, radius) {
+			var y0 = lat;
+			var x0 = lon;
+			var rd = radius / 111300; // Convert radius from meters to degrees
+			var u = Math.random();
+			var v = Math.random();
+			var w = rd * Math.sqrt(u);
+			var t = 2 * Math.PI * v;
+			var x = w * Math.cos(t);
+			var y = w * Math.sin(t);
+			var xp = x / Math.cos(y0); // Adjust the x-coordinate for the shrinking of the east-west distances
+			return {
+				'lat': y + y0,
+				'lon': xp + x0
+			};
+		}
+
+		let myMapObj = {
+			map
+		}
+
+		async function getRoute(center, reqDistance) {
+			const apiKey = 'AIzaSyAN50zSfdEiFnwZGf8T5nfUYnmr1mhQrT0';
+			const url = 'https://routes.googleapis.com/directions/v2:computeRoutes';
+
+			//const upperLat = center.lat + 0.007
+			//const lowerLat = center.lat - 0.007
+			//const upperLon = center.lng + 0.007
+			//const lowerLon = center.lng - 0.007
+
+			//const lat1 = getRandomFloat(lowerLat, upperLat);
+			//const lat2 = getRandomFloat(lowerLat, upperLat);
+			//const lat3 = getRandomFloat(lowerLat, upperLat);
+
+			//const lon1 = getRandomFloat(lowerLon, upperLon);
+			//const lon2 = getRandomFloat(lowerLon, upperLon);
+			//const lon3 = getRandomFloat(lowerLon, upperLon);
+
+			headings = ["East", "North", "West", "South", "NorthEast", "NorthWest", "SouthEast", "SouthWest"];
+
+
+			heading1 = headings[getRandomInt(0, headings.length)]
+			heading2 = headings[getRandomInt(0, headings.length)]
+			heading3 = headings[getRandomInt(0, headings.length)]
+
+
+			result = getAPoint(center.lat, center.lng, heading1, reqDistance)
+			lat1 = result.lat
+			lon1 = result.lon
+			result = getAPoint(center.lat, center.lng, heading2, reqDistance)
+			lat2 = result.lat
+			lon2 = result.lon
+			result = getAPoint(center.lat, center.lng, heading3, reqDistance)
+			lat3 = result.lat
+			lon3 = result.lon
+
+			//result = randomGeo(center.lat, center.lng, 1200)
+			//lat1 = result.lat
+			//lon1 = result.lon
+			//console.log("lat" + lat1 + "lon" + lon1)
+			//result = randomGeo(center.lat, center.lng, 1200)
+			//lat2 = result.lat
+			//lon2 = result.lon
+			//console.log("lat" + lat2 + "lon" + lon2)
+			//result = randomGeo(center.lat, center.lng, 1200)
+			//lat3 = result.lat
+			//lon3 = result.lon
+			//console.log("lat" + lat3 + "lon" + lon3)
+
+			const data = {
+				"origin": {
+					"location": {
+						"latLng": {
+							"latitude": -35.41962,
+							"longitude": 149.07171
+						}
+					}
+				},
+				"intermediates": [  // Specify the intermediate waypoints here
+					{
+						"location": {
+							"latLng": {
+								"latitude": lat1,
+								"longitude": lon1
+							}
+						}
+					},
+					{
+						"location": {
+							"latLng": {
+								"latitude": lat2,
+								"longitude": lon2
+							}
+						}
+					},
+					{
+						"location": {
+							"latLng": {
+								"latitude": lat3,
+								"longitude": lon3
+							}
+						}
+					}
+				],
+				"destination": {
+					"location": {
+						"latLng": {
+							"latitude": -35.41962,
+							"longitude": 149.07171
+						}
+					}
+				},
+				"travelMode": "WALK",
+				"departureTime": "2025-10-15T15:01:23.045123456Z",
+				"computeAlternativeRoutes": false,
+				"routeModifiers": {
+					"avoidTolls": false,
+					"avoidHighways": false,
+					"avoidFerries": false
+				},
+				"languageCode": "en-US",
+				"units": "IMPERIAL"
+
+			};
+
+			const response = await fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-Goog-Api-Key': apiKey,
+					'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline'
+				},
+				body: JSON.stringify(data)
+			});
+			createLink(center.lat,center.lng,lat1,lon1,lat2,lon2,lat3,lon3)
+			return response.json();
+		}
+
+		function addPath(routeData) {
+			let decodedPath = google.maps.geometry.encoding.decodePath(routeData.routes[0].polyline.encodedPolyline);
+
+
+			let polyline = new google.maps.Polyline({
+				map: myMapObj.map,
+				path: decodedPath,
+				strokeColor: "#4285f4",
+				strokeWeight: 5
+			});
+
+			document.getElementById("distance").textContent = "Distance: " + routeData.routes[0].distanceMeters
+
+			console.log(polyline)
+		}
+
+		function createLink(centerlat, centerlon, lat1, lon1, lat2, lon2, lat3, lon3) {
+			//https://www.google.com/maps/dir/?api=1&travelmode=driving&dir_action=navigate&destination=latitude,longitude&waypoints=lat1,lng1|lat2,lng2
+			//let url = "https://www.google.com/maps/dir/?api=1travelmode=walking&dir_action=navigate&origin="
+			//url += centerlat + ","
+			//url += centerlon + ","
+			//url += "destination="
+			//url += centerlat + ","
+			//url += centerlon + ","
+			//url += "waypoints="
+			//url += lat1 +"," + lon1 + "|"
+			//url += lat2 + "," + lon2 + "|"
+			//url += lat3 + "," + lon3
+
+			let url = "https://www.google.com/maps/dir/?api=1&origin=" + centerlat + "," + centerlon + "&destination=" + centerlat + "," + centerlon + "&travelmode=walking&waypoints=" + lat1 + "," + lon1 + "|" + lat2 + "," + lon2 + "|" + lat3 + "," + lon3
+		
+			
+			//let url = "https://www.google.com/maps/dir/"
+			//url += center.lat + "," + center.lng + "/"
+			//url += center.lat + "," + center.lng + "/"
+			//url += "@@" + center.lat + "," + center.lng + "/"
+			//url += "data="+routeData.routes[0].polyline.encodedPolyline
+			
+			//routeData.routes[0].
+			//https://www.google.com/maps/dir/?api=1&travelmode=driving&dir_action=navigate&polyline=enc:your_encoded_polyline
+			//let url = "https://www.google.com/maps/dir/?api=1&travelmode=walking&dir_action=navigate&polyline=" + routeData.routes[0].polyline.encodedPolyline
+			//chatgpt https://www.google.com/maps/dir/?polyline=encoded_polyline_here
+			
+			//let url = "https://www.google.com/maps/dir/?polyline" + routeData.routes[0].polyline.encodedPolyline
+			document.getElementById("googlelink").href = url;
+		}
+
+		async function initMap(reqDistance){
+			console.log("reqDistance is")
+			console.log(reqDistance)
+			center = { lat: -35.41962, lng: 149.07171 }
+			const gmap = new google.maps.Map(document.getElementById("map"), {
+				zoom: 14,
+				center: center, // Set map center to the origin
+			});
+
+			myMapObj.map = gmap
+
+
+			routeData = '';
+			routes = [];
+			for (let i = 0; i < 11; i++) {
+				console.log("iteration:" + i)
+				document.getElementById("iterations").textContent = "iterations: " + i;
+
+				routeData = await getRoute(center,reqDistance)
+
+				routes.push(routeData)
+
+				if (routeData.routes[0].distanceMeters > (reqDistance * 1000 * 0.9) && routeData.routes[0].distanceMeters < (reqDistance * 1000 * 1.1)) {
+					console.log("broke for good route.")
+					console.log(routeData)
+					break;
+				}
+
+			}
+
+			chosenRoute = routes[0];
+			console.log("in forEach")
+			routes.forEach((x,iterator) => {
+				console.log(iterator)
+				checkDistance = Math.abs(x.routes[0].distanceMeters - reqDistance * 1000)
+				bestDistance = Math.abs(chosenRoute.routes[0].distanceMeters - reqDistance * 1000)
+				console.log("checkdistance " + checkDistance)
+				console.log("bestDistance " + bestDistance)
+				
+				if (checkDistance < bestDistance){
+					chosenRoute = x;
+				}
+			})
+			console.log("all routes")
+			console.log(routes)
+			console.log("chosenroute")
+			console.log(chosenRoute)
+
+			addPath(chosenRoute)
+			//createLink(center,routeData)
+		}
+	</script>
+	<p>Requested Distance:</p>
+	<input type="text" id="reqDistance" value="7">
+	<button onclick="initMap(parseInt(document.getElementById('reqDistance').value,10))">Regen</button>
+	<p id="distance"></p>
+	<p id="iterations"></p>
+	<a id="googlelink">Open in Google Maps</a>
+	
+
+</body>
+</html>
