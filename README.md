@@ -7,3 +7,8 @@ If you want to run it, you'll have to create an appsettings.json in the project 
   "ApiKeys": {
     "GoogleMaps": "[apikey]"
   }
+
+#### Some inspiration 
+
+- https://github.com/dugwood/isochrone-isodistance-with-google-maps
+- https://github.com/Spencer6497/free-shuffle
